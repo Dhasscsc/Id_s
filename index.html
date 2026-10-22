@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>கார்டு விபர டூல்</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#f3f5f4;--surface:#fff;--ink:#14231f;--mute:#5d6f69;--line:#d5dcd9;--accent:#0f6b57;--accent-ink:#fff;--wa:#1fa855;--danger:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1715;--surface:#18231f;--ink:#e8f1ee;--mute:#9bb0a9;--line:#2c3b36;--accent:#3cc1a1;--accent-ink:#06211a;--wa:#2bc366;--danger:#ff8a80}}
+:root[data-theme="dark"]{--bg:#0f1715;--surface:#18231f;--ink:#e8f1ee;--mute:#9bb0a9;--line:#2c3b36;--accent:#3cc1a1;--accent-ink:#06211a;--wa:#2bc366;--danger:#ff8a80}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Tamil","Latha","Nirmala UI",system-ui,sans-serif;line-height:1.6}
+main{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:1.25rem;margin:4px 0 12px;font-weight:700}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tab{font:inherit;font-weight:600;padding:10px 4px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font-size:.9rem}
+.tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px}
+canvas{display:block;width:100%;height:auto;border-radius:12px}
+.themes{display:flex;gap:10px;margin:10px 2px 0;align-items:center;font-size:.85rem;color:var(--mute)}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}
+.sw[aria-pressed="true"]{border-color:var(--ink)}
+.tab:focus-visible,.sw:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.form{display:grid;gap:12px}
+label{display:grid;gap:4px;font-size:.9rem;font-weight:600}
+input,textarea{font:inherit;font-weight:400;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+textarea{min-height:84px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px;cursor:pointer;color:var(--accent-ink);background:var(--accent)}
+.btn.wa{background:var(--wa);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:7px 10px;font-size:.8rem;font-weight:600}
+.btn.del{color:var(--danger)}
+.hint{font-size:.8rem;color:var(--mute);margin:6px 2px 0}
+#msg{min-height:1.4em;font-size:.85rem;color:var(--accent);margin:6px 2px 10px}
+h2{font-size:1rem;margin:0 0 8px}
+.rec{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+.rec:first-of-type{border-top:0}
+.rec b{display:block;font-weight:600}
+.rec small{color:var(--mute)}
+.rec .bt{display:flex;gap:6px;flex-shrink:0}
+#pw{display:none}
+@media print{
+  body>*{display:none!important}
+  body>#pw{display:block!important}
+  #pw img{width:var(--pw,85.6mm);height:auto;display:block;margin:0}
+  @page{margin:12mm}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>கார்டு விபர டூல்</h1>
+<div class="tabs" id="tabs"></div>
+
+<div class="box">
+  <canvas id="cv" width="1012" height="638" aria-label="கார்டு முன்னோட்டம்"></canvas>
+  <div class="themes" id="themes">நிறம்</div>
+</div>
+
+<div class="box form" id="form"></div>
+
+<div class="box">
+  <div class="grid2" style="margin-bottom:10px">
+    <button class="btn" id="save">சேமி</button>
+    <button class="btn ghost" id="new">புதியது</button>
+  </div>
+  <label>WhatsApp எண்<input id="wa" inputmode="tel" placeholder="10 இலக்க எண்" autocomplete="off"></label>
+  <div style="display:grid;gap:10px;margin-top:10px">
+    <button class="btn" id="dl">படம் டவுன்லோடு</button>
+    <button class="btn wa" id="send">WhatsApp-க்கு அனுப்பு</button>
+    <div class="grid2">
+      <button class="btn ghost" id="share">பகிர்</button>
+      <button class="btn ghost" id="prn">பிரிண்ட்</button>
+    </div>
+  </div>
+  <p class="hint">“WhatsApp-க்கு அனுப்பு” படத்தை டவுன்லோடு செய்து அந்த எண்ணின் சாட்டைத் திறக்கும்; 📎 மூலம் படத்தை இணைக்கவும். “பகிர்” படத்தையே நேரடியாக அனுப்பும்.</p>
+  <div id="msg" role="status"></div>
+</div>
+
+<div class="box">
+  <h2 id="lh">சேமித்த பதிவுகள்</h2>
+  <div id="list"></div>
+</div>
+</main>
+<div id="pw"><img id="pimg" alt=""></div>
+
+<script>
+(function(){
+var W=1012,F='"Noto Sans Tamil","Latha","Nirmala UI",sans-serif';
+var cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+var $=function(i){return document.getElementById(i)};
+var THEMES=[
+ {n:'பச்சை',a:'#0b4d3f',b:'#14866b',g:'#e8c872'},
+ {n:'நீலம்',a:'#0c2a5a',b:'#2467c9',g:'#f0d58a'},
+ {n:'கருப்பு',a:'#161a1f',b:'#4a5560',g:'#d9b45a'},
+ {n:'மெரூன்',a:'#5a1226',b:'#b13a58',g:'#f0cf8c'}
+];
+var MUTE='rgba(255,255,255,.78)';
+
+function T(txt,x,y,max,size,wt,col,al){
+  ctx.textAlign=al||'left';ctx.fillStyle=col;var s=size;
+  do{ctx.font=wt+' '+s+'px '+F;s-=2}while(ctx.measureText(txt).width>max&&s>16);
+  ctx.fillText(txt,x,y);
+}
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function bg(H,t){
+  cv.width=W;cv.height=H;ctx.textBaseline='alphabetic';
+  ctx.save();rr(0,0,W,H,44);ctx.clip();
+  var g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,t.a);g.addColorStop(1,t.b);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.globalAlpha=.09;ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(W-60,60,260,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(W-200,H+40,230,0,7);ctx.fill();
+  ctx.globalAlpha=1;
+}
+function groups(s){return s.replace(/\s+/g,'').replace(/(.{4})/g,'$1 ').trim()}
+function parts(s){return s.split(/[,\n]+/).map(function(x){return x.trim()}).filter(Boolean)}
+
+var SV={
+bank:{tab:'வங்கி விபரம்',H:638,mm:'85.6mm',
+ f:[['bank','வங்கி பெயர்','எ.கா: இந்தியன் வங்கி'],['branch','கிளை',''],['name','பெயர்',''],['acc','கணக்கு எண்','','num'],['ifsc','IFSC கோடு','','up']],
+ req:['bank','name','acc','ifsc'],
+ title:function(d){return d.name||d.bank},sub:function(d){return d.bank+' · '+d.acc},
+ text:function(d){return 'வங்கி விபரங்கள்\nவங்கி: '+d.bank+'\nகிளை: '+d.branch+'\nபெயர்: '+d.name+'\nகணக்கு எண்: '+d.acc+'\nIFSC: '+d.ifsc.toUpperCase()},
+ draw:function(d,t){
+  bg(638,t);
+  T(d.bank||'வங்கி பெயர்',70,100,W-140,50,700,'#fff');
+  var cg=ctx.createLinearGradient(70,170,170,250);cg.addColorStop(0,t.g);cg.addColorStop(1,'#fff3cf');
+  ctx.fillStyle=cg;rr(70,170,110,82,14);ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.28)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(70,198);ctx.lineTo(180,198);ctx.moveTo(70,224);ctx.lineTo(180,224);ctx.moveTo(112,170);ctx.lineTo(112,252);ctx.moveTo(138,170);ctx.lineTo(138,252);ctx.stroke();
+  rr(70,170,110,82,14);ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=5;ctx.lineCap='round';
+  for(var i=1;i<=3;i++){ctx.beginPath();ctx.arc(215,211,i*15,-0.9,0.9);ctx.stroke()}
+  T('கணக்கு எண்',70,328,600,24,400,MUTE);
+  T(d.acc?groups(d.acc):'XXXX XXXX XXXX',70,396,W-140,62,600,'#fff');
+  T('பெயர்',70,478,600,24,400,MUTE);
+  T(d.name||'பெயர்',70,525,W-140,40,600,'#fff');
+  T('கிளை',70,578,400,24,400,MUTE);
+  T(d.branch||'கிளை',70,615,430,30,600,'#fff');
+  T('IFSC கோடு',W-70,578,300,24,400,MUTE,'right');
+  T((d.ifsc||'IFSC').toUpperCase(),W-70,615,380,38,700,t.g,'right');
+  ctx.restore();
+ }},
+pass:{tab:'பாஸ்வேர்டு',H:638,mm:'85.6mm',
+ f:[['svc','சேவை பெயர்','எ.கா: PAN, EPFO'],['cust','வாடிக்கையாளர் பெயர்',''],['user','யூசர் நேம்',''],['pw','பாஸ்வேர்டு','']],
+ req:['svc','cust','user','pw'],
+ title:function(d){return d.cust},sub:function(d){return d.svc+' · '+d.user},
+ text:function(d){return 'லாகின் விபரங்கள்\nசேவை: '+d.svc+'\nவாடிக்கையாளர்: '+d.cust+'\nயூசர் நேம்: '+d.user+'\nபாஸ்வேர்டு: '+d.pw},
+ draw:function(d,t){
+  bg(638,t);
+  T(d.svc||'சேவை பெயர்',70,110,W-140,56,700,'#fff');
+  ctx.fillStyle=t.g;rr(70,140,120,6,3);ctx.fill();
+  var rows=[['வாடிக்கையாளர் பெயர்',d.cust,'பெயர்','#fff'],['யூசர் நேம்',d.user,'யூசர் நேம்','#fff'],['பாஸ்வேர்டு',d.pw,'பாஸ்வேர்டு',t.g]];
+  rows.forEach(function(r,i){var y=232+i*140;T(r[0],70,y,600,26,400,MUTE);T(r[1]||r[2],70,y+56,W-140,54,600,r[3])});
+  ctx.restore();
+ }},
+visit:{tab:'விசிட்டிங் கார்டு',H:578,mm:'90mm',
+ f:[['name','பெயர்',''],['phone','செல் நம்பர்','','tel'],['town','ஊர்',''],['svcs','சேவைகள்','காற்புள்ளி அல்லது புதிய வரியால் பிரிக்கவும்','area']],
+ req:['name','phone'],
+ title:function(d){return d.name},sub:function(d){return d.phone+' · '+d.town},
+ text:function(d){return d.name+'\nசெல்: '+d.phone+'\nஊர்: '+d.town+'\nசேவைகள்: '+parts(d.svcs).join(', ')},
+ draw:function(d,t){
+  bg(578,t);
+  T(d.name||'பெயர்',70,120,W-140,66,700,'#fff');
+  T(d.phone?'செல்: '+d.phone:'செல் நம்பர்',70,196,W-140,48,700,t.g);
+  T(d.town||'ஊர்',70,252,W-140,34,400,MUTE);
+  ctx.fillStyle='rgba(255,255,255,.35)';ctx.fillRect(70,290,W-140,2);
+  var s=parts(d.svcs||'');if(!s.length)s=['சேவைகள்'];
+  s.slice(0,10).forEach(function(x,i){
+    var col=i%2,row=Math.floor(i/2);
+    T('• '+x,70+col*440,348+row*50,410,32,600,'#fff');
+  });
+  ctx.restore();
+ }}
+};
+
+var cur='bank',thm=0,editId=null,inp={},store=load();
+function load(){var s;try{s=JSON.parse(localStorage.getItem('cardtool_v1'))}catch(e){}
+  s=s||{};['bank','pass','visit'].forEach(function(k){if(!Array.isArray(s[k]))s[k]=[]});return s}
+function persist(){try{localStorage.setItem('cardtool_v1',JSON.stringify(store))}catch(e){say('சேமிக்க முடியவில்லை.')}}
+function say(s){var m=$('msg');m.textContent=s;clearTimeout(say.t);say.t=setTimeout(function(){m.textContent=''},6000)}
+
+function data(){var d={};SV[cur].f.forEach(function(f){d[f[0]]=inp[f[0]].value.trim()});return d}
+function setData(d){SV[cur].f.forEach(function(f){inp[f[0]].value=d[f[0]]||''})}
+function draw(){SV[cur].draw(data(),THEMES[thm])}
+
+function buildForm(){
+  var fm=$('form');fm.innerHTML='';inp={};
+  SV[cur].f.forEach(function(f){
+    var l=document.createElement('label');l.textContent=f[1];
+    var i=document.createElement(f[3]==='area'?'textarea':'input');
+    i.placeholder=f[2]||'';i.autocomplete='off';
+    if(f[3]==='num')i.inputMode='numeric';
+    if(f[3]==='tel')i.inputMode='tel';
+    if(f[3]==='up')i.autocapitalize='characters';
+    i.addEventListener('input',draw);
+    l.appendChild(i);fm.appendChild(l);inp[f[0]]=i;
+  });
+}
+function mkBtn(txt,cls,fn){var b=document.createElement('button');b.type='button';b.className=cls;b.textContent=txt;b.onclick=fn;return b}
+
+function renderList(){
+  var L=$('list');L.innerHTML='';
+  var a=store[cur];
+  $('lh').textContent='சேமித்த பதிவுகள் ('+a.length+')';
+  if(!a.length){var p=document.createElement('p');p.className='hint';p.textContent='இன்னும் பதிவுகள் இல்லை. விபரங்களை நிரப்பி “சேமி” அழுத்தவும்.';L.appendChild(p);return}
+  a.slice().reverse().forEach(function(r){
+    var row=document.createElement('div');row.className='rec';
+    var tx=document.createElement('div');
+    var b=document.createElement('b');b.textContent=SV[cur].title(r.d)||'—';
+    var s=document.createElement('small');s.textContent=SV[cur].sub(r.d);
+    tx.appendChild(b);tx.appendChild(s);
+    var bt=document.createElement('div');bt.className='bt';
+    bt.appendChild(mkBtn('திருத்து','btn ghost sm',function(){edit(r.id)}));
+    bt.appendChild(mkBtn('பிரிண்ட்','btn ghost sm',function(){edit(r.id);setTimeout(printCard,80)}));
+    bt.appendChild(mkBtn('அழி','btn ghost sm del',function(){
+      if(!confirm('இந்தப் பதிவை அழிக்கவா?'))return;
+      store[cur]=store[cur].filter(function(x){return x.id!==r.id});
+      if(editId===r.id)newRec();
+      persist();renderList();
+    }));
+    row.appendChild(tx);row.appendChild(bt);L.appendChild(row);
+  });
+}
+function edit(id){
+  var r=store[cur].filter(function(x){return x.id===id})[0];if(!r)return;
+  editId=id;setData(r.d);thm=r.t||0;syncThemes();$('save').textContent='புதுப்பி';draw();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function newRec(){editId=null;setData({});$('save').textContent='சேமி';draw()}
+function need(){
+  var d=data(),miss=SV[cur].req.filter(function(k){return !d[k]});
+  if(miss.length){say('தேவையான விபரங்களை நிரப்பவும்.');return false}return true;
+}
+$('save').onclick=function(){
+  if(!need())return;
+  var d=data();
+  if(editId){store[cur].forEach(function(r){if(r.id===editId){r.d=d;r.t=thm}});say('புதுப்பிக்கப்பட்டது.')}
+  else{store[cur].push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),d:d,t:thm});say('சேமிக்கப்பட்டது.')}
+  persist();renderList();newRec();
+};
+$('new').onclick=newRec;
+
+function buildTabs(){
+  var t=$('tabs');t.innerHTML='';
+  Object.keys(SV).forEach(function(k){
+    var b=mkBtn(SV[k].tab,'tab',function(){cur=k;editId=null;$('save').textContent='சேமி';buildForm();syncTabs();renderList();draw()});
+    b.dataset.k=k;t.appendChild(b);
+  });
+  syncTabs();
+}
+function syncTabs(){[].forEach.call($('tabs').children,function(b){b.setAttribute('aria-pressed',b.dataset.k===cur)})}
+function syncThemes(){[].forEach.call($('themes').querySelectorAll('.sw'),function(b,i){b.setAttribute('aria-pressed',i===thm)})}
+THEMES.forEach(function(t,i){
+  var b=document.createElement('button');b.type='button';b.className='sw';
+  b.style.background='linear-gradient(135deg,'+t.a+','+t.b+')';b.setAttribute('aria-label',t.n);
+  b.onclick=function(){thm=i;syncThemes();draw()};$('themes').appendChild(b);
+});
+
+function fname(){var d=data();var n=(SV[cur].title(d)||cur).replace(/[^\w\u0B80-\u0BFF]+/g,'_');return cur+'_'+n+'.png'}
+function blob(){return new Promise(function(r){cv.toBlob(r,'image/png')})}
+function download(){return blob().then(function(b){
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname();
+  document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},4000)})}
+function number(){var d=$('wa').value.replace(/\D/g,'');if(d.length===10)d='91'+d;return d.length>=11?d:''}
+function printCard(){
+  $('pimg').src=cv.toDataURL('image/png');
+  document.documentElement.style.setProperty('--pw',SV[cur].mm);
+  setTimeout(function(){window.print()},60);
+}
+$('dl').onclick=function(){if(need())download().then(function(){say('படம் டவுன்லோடு ஆனது.')})};
+$('prn').onclick=function(){if(need())printCard()};
+$('send').onclick=function(){
+  if(!need())return;var n=number();
+  if(!n){say('சரியான WhatsApp எண்ணை உள்ளிடவும்.');return}
+  var url='https://wa.me/'+n+'?text='+encodeURIComponent(SV[cur].text(data()));
+  download().then(function(){say('படம் டவுன்லோடு ஆனது. சாட்டில் 📎 மூலம் இணைக்கவும்.');window.open(url,'_blank')});
+};
+$('share').onclick=function(){
+  if(!need())return;
+  blob().then(function(b){
+    var f=new File([b],fname(),{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:SV[cur].text(data())}).catch(function(){})}
+    else download().then(function(){say('நேரடி பகிர்வு இல்லை. படம் டவுன்லோடு ஆனது.')});
+  });
+};
+
+buildTabs();buildForm();syncThemes();renderList();draw();
+if(document.fonts&&document.fonts.load){
+  Promise.all(['400','600','700'].map(function(w){return document.fonts.load(w+' 24px "Noto Sans Tamil"')})).then(draw).catch(function(){});
+}
+})();
+</script>
+</body>
+</html>
