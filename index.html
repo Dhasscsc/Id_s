@@ -23,7 +23,7 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Tamil","Latha","Nirmala UI",system-ui,sans-serif;line-height:1.6}
 main{max-width:560px;margin:0 auto;padding:16px}
 h1{font-size:1.25rem;margin:4px 0 12px;font-weight:700}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
 .tab{font:inherit;font-weight:600;padding:10px 4px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;font-size:.9rem}
 .tab[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px}
@@ -34,7 +34,7 @@ canvas{display:block;width:100%;height:auto;border-radius:12px}
 .tab:focus-visible,.sw:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .form{display:grid;gap:12px}
 label{display:grid;gap:4px;font-size:.9rem;font-weight:600}
-input,textarea{font:inherit;font-weight:400;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+input,textarea,select{font:inherit;font-weight:400;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
 textarea{min-height:84px;resize:vertical}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:12px;cursor:pointer;color:var(--accent-ink);background:var(--accent)}
@@ -184,24 +184,51 @@ visit:{tab:'விசிட்டிங் கார்டு',H:578,mm:'90mm',
     T('• '+x,70+col*440,348+row*50,410,32,600,'#fff');
   });
   ctx.restore();
+ }},
+pay:{tab:'கட்டண நிலை',H:800,mm:'80mm',noTheme:true,
+ f:[['name','பெயர்',''],['amt','தொகை','எ.கா: 100','dec'],['st','நிலை','','sel',['கட்டணம் பெறப்பட்டது','கட்டணம் நிலுவையில் உள்ளது','பகுதி கட்டணம் பெறப்பட்டது']]],
+ req:['name','amt'],
+ title:function(d){return d.name},sub:function(d){return '₹'+d.amt+' · '+d.st},
+ text:function(d){return 'கட்டண விபரம்\nபெயர்: '+d.name+'\nதொகை: ₹'+d.amt+'\nநிலை: '+d.st+'\n\nதாஸ் பொது சேவை மையம்'},
+ draw:function(d){
+  cv.width=800;cv.height=800;ctx.textBaseline='alphabetic';
+  var st=d.st||'கட்டணம் பெறப்பட்டது',k=st.indexOf('நிலுவை')>=0?1:st.indexOf('பகுதி')>=0?2:0;
+  var C=[['#1fa855','#14653f','நன்றி! 🙏'],['#e0620d','#a63d00','விரைவில் செலுத்தவும் 🙏'],['#d99a06','#8a5a00','நன்றி! 🙏']][k];
+  ctx.fillStyle=['#eafaf1','#fff1e6','#fff8e1'][k];ctx.fillRect(0,0,800,800);
+  ctx.beginPath();ctx.arc(400,400,370,0,7);ctx.fillStyle='#fff';ctx.fill();
+  ctx.lineWidth=24;ctx.strokeStyle=C[0];ctx.stroke();
+  ctx.beginPath();ctx.arc(400,172,90,0,7);ctx.fillStyle=C[0];ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=20;ctx.lineCap='round';ctx.lineJoin='round';
+  if(k===0){ctx.beginPath();ctx.moveTo(355,175);ctx.lineTo(388,208);ctx.lineTo(448,140);ctx.stroke()}
+  else if(k===1){ctx.beginPath();ctx.arc(400,172,50,0,7);ctx.stroke();ctx.beginPath();ctx.moveTo(400,140);ctx.lineTo(400,175);ctx.lineTo(425,190);ctx.stroke()}
+  else{T('½',400,203,100,84,700,'#fff','center')}
+  var n=parseFloat((d.amt||'').replace(/,/g,''));
+  var at=isNaN(n)?'தொகை':'₹ '+n.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  T(st,400,345,600,48,700,C[1],'center');
+  T(at,400,462,560,88,700,'#b71c1c','center');
+  T(d.name||'பெயர்',400,534,560,46,600,'#1e3a8a','center');
+  T(C[2],400,630,480,54,700,'#e07b00','center');
+  T('தாஸ் பொது சேவை மையம்',400,695,420,34,600,'#334155','center');
  }}
 };
 
 var cur='bank',thm=0,editId=null,inp={},store=load();
 function load(){var s;try{s=JSON.parse(localStorage.getItem('cardtool_v1'))}catch(e){}
-  s=s||{};['bank','pass','visit'].forEach(function(k){if(!Array.isArray(s[k]))s[k]=[]});return s}
+  s=s||{};['bank','pass','visit','pay'].forEach(function(k){if(!Array.isArray(s[k]))s[k]=[]});return s}
 function persist(){try{localStorage.setItem('cardtool_v1',JSON.stringify(store))}catch(e){say('சேமிக்க முடியவில்லை.')}}
 function say(s){var m=$('msg');m.textContent=s;clearTimeout(say.t);say.t=setTimeout(function(){m.textContent=''},6000)}
 
 function data(){var d={};SV[cur].f.forEach(function(f){d[f[0]]=inp[f[0]].value.trim()});return d}
-function setData(d){SV[cur].f.forEach(function(f){inp[f[0]].value=d[f[0]]||''})}
-function draw(){SV[cur].draw(data(),THEMES[thm])}
+function setData(d){SV[cur].f.forEach(function(f){inp[f[0]].value=d[f[0]]||(f[3]==='sel'?f[4][0]:'')})}
+function draw(){$('themes').style.display=SV[cur].noTheme?'none':'flex';SV[cur].draw(data(),THEMES[thm])}
 
 function buildForm(){
   var fm=$('form');fm.innerHTML='';inp={};
   SV[cur].f.forEach(function(f){
     var l=document.createElement('label');l.textContent=f[1];
-    var i=document.createElement(f[3]==='area'?'textarea':'input');
+    var i=document.createElement(f[3]==='area'?'textarea':f[3]==='sel'?'select':'input');
+    if(f[3]==='sel'){f[4].forEach(function(o){var op=document.createElement('option');op.value=op.textContent=o;i.appendChild(op)});i.addEventListener('change',draw)}
+    if(f[3]==='dec')i.inputMode='decimal';
     i.placeholder=f[2]||'';i.autocomplete='off';
     if(f[3]==='num')i.inputMode='numeric';
     if(f[3]==='tel')i.inputMode='tel';
