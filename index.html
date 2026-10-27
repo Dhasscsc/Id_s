@@ -2680,16 +2680,17 @@ $('share').onclick=function(){
   });
 };
 
-function cfg(){try{return JSON.parse(localStorage.getItem('cardtool_cfg'))||{}}catch(e){return{}}}
+var GAS_URL='https://script.google.com/macros/s/AKfycbyq4djld7qJFmEuHBvzHhgwTJ7I8mvvhdvWrBAzS6hmvC9P8e3ng9elXFQMbUNbXsqkKQ/exec';
+function cfg(){var c={};try{c=JSON.parse(localStorage.getItem('cardtool_cfg'))||{}}catch(e){}if(!c.url)c.url=GAS_URL;return c}
 function cloud(body){
-  var c=cfg();if(!c.url)return Promise.resolve(null);body.key=c.key||'';
+  var c=cfg();if(!c.url||!c.key)return Promise.resolve(null);body.key=c.key;
   return fetch(c.url,{method:'POST',body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(j){
     if(!j.ok)throw new Error(j.error||'error');return j}).catch(function(e){say('கிளவுடு ஒத்திசைவு தோல்வி: '+e.message);return null});
 }
-var cu=$('cfgUrl'),ck=$('cfgKey'),c0=cfg();cu.value=c0.url||'';ck.value=c0.key||'';
+var cu=$('cfgUrl'),ck=$('cfgKey'),c0=cfg();cu.value=c0.url||'';ck.value=c0.key||'';cu.value=c0.url;
 $('cfgSave').onclick=function(){try{localStorage.setItem('cardtool_cfg',JSON.stringify({url:cu.value.trim(),key:ck.value.trim()}));say('அமைப்பு சேமிக்கப்பட்டது.')}catch(e){say('சேமிக்க முடியவில்லை.')}};
 $('pull').onclick=function(){
-  var c=cfg();if(!c.url){say('முதலில் URL-ஐ சேமிக்கவும்.');return}
+  var c=cfg();if(!c.key){say('முதலில் கீ-யை சேமிக்கவும்.');return}
   fetch(c.url+'?action=list&key='+encodeURIComponent(c.key||'')).then(function(r){return r.json()}).then(function(j){
     if(!j.ok)throw new Error(j.error||'error');var n=0;
     Object.keys(store).forEach(function(k){(j.data[k]||[]).forEach(function(r){
